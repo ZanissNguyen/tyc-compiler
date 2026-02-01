@@ -24,7 +24,7 @@ options{
 	language=Python3;
 }
 
-program: (structdcl | vardecl | funcdecl)+ EOF;
+program: (structdcl | vardecl SEMI | funcdecl)* EOF;
 
 /* ========================================
                     LEXER
@@ -121,12 +121,10 @@ member_list: member member_list | ;
 member: (type | ID) ID SEMI;
 // auto
 
-vardecl: type ID SEMI
-    |    type assignment_expr SEMI
-    |    TYPE_AUTO ID SEMI
-    |    TYPE_AUTO assignment_expr SEMI
-    |    ID ID SEMI // struct
-    |    ID ID ASSIGNMENT LBR memberdcl_prime RBR SEMI;
+vardecl: type ID (ASSIGNMENT or_expr)?
+    |    TYPE_AUTO ID (ASSIGNMENT or_expr)?
+    |    ID ID // struct
+    |    ID ID ASSIGNMENT LBR memberdcl_prime RBR;
 memberdcl_prime: memberdcl_list | ;
 memberdcl_list: memberdcl COMMA memberdcl_list | memberdcl;
 memberdcl: or_expr;
@@ -146,7 +144,7 @@ primary_expr: LIT_INT
         | LIT_FLOAT
         | LIT_STRING
         | ID
-        | LP or_expr RP;
+        | LP assignment_expr RP;
 argument_prime: argument_list | ;
 argument_list: argument COMMA argument_list | argument;
 argument: or_expr;
@@ -160,7 +158,7 @@ parameter: type ID;
 body: LBR statement_prime RBR;
 statement_prime: statement_list | ;
 statement_list: statement statement_list | ;
-statement: vardecl
+statement: vardecl SEMI
         | assignStmt
         | body
         | ifStmt

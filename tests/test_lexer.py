@@ -66,3 +66,7 @@ def test_complex_expression():
     """10. Complex: variable declaration"""
     tokenizer = Tokenizer("auto x = 5 + 3 * 2;")
     assert tokenizer.get_tokens_as_string() == "auto,x,=,5,+,3,*,2,;,<EOF>"
+
+def test():
+    tokenizer = Tokenizer("for (auto i = 0; i < 10; ++i) printInt(i);")
+    assert tokenizer.get_tokens_as_string() == "for,(,auto,i,=,0,;,i,<,10,;,++,i,),printInt,(,i,),;,<EOF>"

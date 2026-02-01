@@ -78,7 +78,9 @@ class Tokenizer:
                 # If no tokens yet, just return error message
                 return str(e)
 
-        return ",".join(tokens)
+        toReturn = ",".join(tokens)
+        print(toReturn)
+        return toReturn
 
 
 class Parser:
@@ -98,6 +100,9 @@ class Parser:
 
         try:
             tree = parser.program()
+            print(tree.toStringTree(recog=parser))
             return "success"
         except Exception as e:
+            tree = parser.program()
+            print(tree.toStringTree(recog=parser))
             return str(e)
