@@ -63,9 +63,11 @@ class Tokenizer:
         lexer = TyCLexer(input_stream)
 
         tokens = []
+        types = []
         try:
             while True:
                 token = lexer.nextToken()
+                if token.type!=-1: types.append(TyCLexer.symbolicNames[token.type])
                 if token.type == -1:  # EOF
                     tokens.append("<EOF>")
                     break
@@ -78,6 +80,7 @@ class Tokenizer:
                 # If no tokens yet, just return error message
                 return str(e)
 
+        print(types)
         toReturn = ",".join(tokens)
         print(toReturn)
         return toReturn

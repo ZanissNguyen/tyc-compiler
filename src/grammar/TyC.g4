@@ -29,6 +29,11 @@ program: (structdcl | vardecl SEMI | funcdecl)* EOF;
 /* ========================================
                     LEXER
    ======================================== */
+
+// comment:
+MULTI_LINE_COMMENT: '/*' .* '*/' -> skip; //ignore warning bro!
+SINGLE_LINE_COMMENT: '//' ~[\n\r]* -> skip;
+
 // type keywords:
 TYPE_AUTO: 'auto';
 TYPE_FLOAT: 'float';
@@ -76,19 +81,14 @@ COMMA: ',';
 COLON: ':';
 NEWLINE: [\n] -> skip; // count?
 
-// comment:
-MULTI_LINE_COMMENT: '/*' .*? '*/' -> skip;
-SINGLE_LINE_COMMENT: '//' ~[\n\r]* -> skip;
-
 // literal:
 LIT_INT: DIGIT+;
-LIT_FLOAT: DIGIT+ DECIMAL_POINT EXPONENT
-        |  DIGIT+ EXPONENT
-        |  DIGIT+ DECIMAL_POINT;
+LIT_FLOAT: DIGIT+ '.' DIGIT*  EXPONENT?
+        | '.' DIGIT+ EXPONENT?
+        |  DIGIT+ EXPONENT;
 fragment DIGIT: [0-9];
-fragment DECIMAL_POINT: '.' DIGIT+;
 fragment EXPONENT: [eE] [+|-]? DIGIT+;
-LIT_STRING: '"' (~["\\\r\n] | ESCAPE)* '"' {self.text = self.text.replace('"', '')};
+LIT_STRING: '"' (~["\\\r\n] | ESCAPE)* '"' {self.text = self.text[1:-1]};
 fragment ESCAPE: '\\' [bfrnt"\\];
 
 // identifier:
@@ -97,14 +97,14 @@ ID: [a-zA-Z_][a-zA-Z0-9_]*;
 WS : [ \t\r]+ -> skip ; // skip spaces, tabs
 
 // exception handling
-ERROR_CHAR: . { 
-    raise ErrorToken(self.text); 
-    };
-ILLEGAL_ESCAPE: '\\' ~[bfrnt"\\] {
-    raise IllegalEscape(self.text)
+ILLEGAL_ESCAPE: '"' (~["\\\r\n] | ESCAPE)* '\\' ~[bfrnt"\\] {
+    raise IllegalEscape(self.text[1:])
     };
 UNCLOSE_STRING: '"' (~["\\\r\n] | ESCAPE)* ('\r'? '\n' | EOF) {
-    raise UncloseString(self.text)
+    raise UncloseString(self.text[1:])
+    };
+ERROR_CHAR: . { 
+    raise ErrorToken(self.text); 
     };
 
 /* ========================================
