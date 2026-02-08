@@ -24,7 +24,7 @@ options{
 	language=Python3;
 }
 
-program: (structdcl | vardecl SEMI | funcdecl)* EOF;
+program: (structdcl | funcdecl)* EOF;
 
 /* ========================================
                     LEXER
@@ -79,7 +79,7 @@ RP: ')';
 SEMI: ';'; 
 COMMA: ','; 
 COLON: ':';
-NEWLINE: [\n] -> skip; // count?
+// NEWLINE: [\n] -> skip; // count?
 
 // literal:
 LIT_INT: DIGIT+;
@@ -94,14 +94,14 @@ fragment ESCAPE: '\\' [bfrnt"\\];
 // identifier:
 ID: [a-zA-Z_][a-zA-Z0-9_]*;
 
-WS : [ \t\r]+ -> skip ; // skip spaces, tabs
+WS : [ \n\t\r]+ -> skip ; // skip spaces, tabs
 
 // exception handling
-ILLEGAL_ESCAPE: '"' (~["\\\r\n] | ESCAPE)* '\\' ~[bfrnt"\\] {
-    raise IllegalEscape(self.text[1:])
-    };
-UNCLOSE_STRING: '"' (~["\\\r\n] | ESCAPE)* ('\r'? '\n' | EOF) {
+UNCLOSE_STRING: '"' (~["\\\r\n] | ESCAPE)* '\\'? ([\r]? [\n] | EOF) {
     raise UncloseString(self.text[1:])
+    };
+ILLEGAL_ESCAPE: '"' (~["\\\r\n] | ESCAPE)* '\\' ~[bfrnt"\\\r\n] {
+    raise IllegalEscape(self.text[1:])
     };
 ERROR_CHAR: . { 
     raise ErrorToken(self.text); 
@@ -127,7 +127,42 @@ vardecl: type ID (ASSIGNMENT or_expr)?
     |    ID ID ASSIGNMENT LBR memberdcl_prime RBR;
 memberdcl_prime: memberdcl_list | ;
 memberdcl_list: memberdcl COMMA memberdcl_list | memberdcl;
-memberdcl: or_expr;
+memberdcl: or_expr | LBR memberdcl_prime RBR;
+
+// parameter: null-able separated by comma
+funcdecl: (type | TYPE_VOID | ID)? ID LP parameter_prime RP body;
+parameter_prime: parameter_list | ;
+parameter_list: parameter COMMA parameter_list | parameter; 
+parameter: (type | ID) ID;
+
+body: LBR statement_prime RBR;
+statement_prime: statement_list | ;
+statement_list: statement statement_list | ;
+statement: vardecl SEMI
+        | assignStmt
+        | body
+        | ifStmt
+        | whileStmt
+        | forStmt
+        | switchStmt
+        | breakStmt
+        | continueStmt
+        | returnStmt;
+assignStmt: assignment_expr SEMI;
+ifStmt: IF LP assignment_expr RP statement ELSE statement
+        | IF LP assignment_expr RP statement;
+whileStmt: WHILE LP assignment_expr RP statement;
+forStmt: FOR LP (vardecl|assignment_expr)? SEMI assignment_expr? SEMI assignment_expr? RP statement;
+breakStmt: BREAK SEMI;
+continueStmt: CONTINUE SEMI;
+returnStmt: RETURN assignment_expr? SEMI
+        | RETURN SEMI;
+switchStmt: SWITCH LP assignment_expr RP switchBody;
+switchBody: LBR case_list RBR;
+case_list: case case_list | ; // switch a {}
+case: (normal_case | default_case) ; //
+normal_case: CASE assignment_expr COLON statement_list;
+default_case: DEFAULT COLON statement_list;
 
 assignment_expr: postfix_expr ASSIGNMENT assignment_expr | or_expr; // postfix_expr ở đây là assignable
 or_expr: or_expr LOG_OR and_expr | and_expr;
@@ -148,39 +183,3 @@ primary_expr: LIT_INT
 argument_prime: argument_list | ;
 argument_list: argument COMMA argument_list | argument;
 argument: or_expr;
-
-// parameter: null-able separated by comma
-funcdecl: (type | TYPE_VOID | ID) ID LP parameter_prime RP body;
-parameter_prime: parameter_list | ;
-parameter_list: parameter (COMMA parameter_list) | ; 
-parameter: type ID;
-
-body: LBR statement_prime RBR;
-statement_prime: statement_list | ;
-statement_list: statement statement_list | ;
-statement: vardecl SEMI
-        | assignStmt
-        | body
-        | ifStmt
-        | whileStmt
-        | forStmt
-        | switchStmt
-        | breakStmt
-        | continueStmt
-        | returnStmt;
-assignStmt: assignment_expr SEMI;
-ifStmt: IF LP assignment_expr RP statement ELSE statement
-        | IF LP assignment_expr RP statement;
-whileStmt: WHILE LP assignment_expr RP statement;
-forStmt: FOR LP vardecl? SEMI assignment_expr? SEMI assignment_expr? RP statement;
-breakStmt: BREAK SEMI;
-continueStmt: CONTINUE SEMI;
-returnStmt: RETURN assignment_expr? SEMI
-        | RETURN SEMI;
-switchStmt: SWITCH LP assignment_expr RP switchBody;
-switchBody: LBR case_list RBR;
-case_list: case case_list | ; // switch a {}
-case: case_label+ statement_list; //
-case_label: CASE assignment_expr COLON | DEFAULT COLON;
-
-

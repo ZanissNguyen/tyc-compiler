@@ -106,6 +106,6 @@ class Parser:
             print(tree.toStringTree(recog=parser))
             return "success"
         except Exception as e:
-            tree = parser.program()
-            print(tree.toStringTree(recog=parser))
+            # tree = parser.program()
+            # print(tree.toStringTree(recog=parser))
             return str(e)

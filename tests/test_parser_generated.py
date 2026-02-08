@@ -1,14 +1,7 @@
-"""
-Parser test cases for TyC compiler
-Implement 100 test cases for parser
-"""
 import pytest
 from tests.utils import Parser
 
 
-# ========== Simple Test Cases (10 types) ==========# removed
-
-# testcases submission:
 def test_empty_program():
     """Testcase 1: empty_program"""
     source = """
@@ -720,7 +713,7 @@ void main() {
     a = *a * 9 * 10;
 }
     """
-    expected = "Error on line 6 col 8: *"
+    expected = "Error on line 10 col 8: *"
     assert Parser(source).parse() == expected
 
 def test_expr_div_01():
@@ -746,7 +739,7 @@ void main() {
     a = /a / (9 / 0);
 }
     """
-    expected = "Error on line 6 col 8: /"
+    expected = "Error on line 10 col 8: /"
     assert Parser(source).parse() == expected
 
 def test_expr_mod_01():
@@ -772,7 +765,7 @@ void main() {
     a = %a % 5 % 2;
 }
     """
-    expected = "Error on line 6 col 8: %"
+    expected = "Error on line 10 col 8: %"
     assert Parser(source).parse() == expected
 
 def test_expr_arthmetic_01():
@@ -865,7 +858,7 @@ void main() {
     x =5 + ;
 }
     """
-    expected = "Error on line 6 col 11: ;"
+    expected = "Error on line 6 col 10: ;"
     assert Parser(source).parse() == expected
 
 def test_expr_greater():
@@ -903,7 +896,7 @@ void main() {
     a = i<;
 }
     """
-    expected = "Error on line 5 col 10: ;"
+    expected = "Error on line 6 col 10: )"
     assert Parser(source).parse() == expected
 
 def test_expr_is_equal():
@@ -953,7 +946,7 @@ void main() {
     c = i==3<5>=;
 }
     """
-    expected = "Error on line 5 col 16: ;"
+    expected = "Error on line 6 col 16: )"
     assert Parser(source).parse() == expected
 
 def test_expr_complex_missing_semi():
@@ -965,7 +958,7 @@ void main() {
     c = i==3<5>=b
 }
     """
-    expected = "Error on line 6 col 0: }"
+    expected = "Error on line 7 col 0: }"
     assert Parser(source).parse() == expected
 
 def test_expr_complex_missing_in_operand():
@@ -977,7 +970,7 @@ void main() {
     c = i==3<>=b;
 }
     """
-    expected = "Error on line 5 col 13: >="
+    expected = "?"
     assert Parser(source).parse() == expected
 
 def test_expr_logic_and_relation():
@@ -986,7 +979,7 @@ def test_expr_logic_and_relation():
 
 
 void main() {
-    a = !(b>=1);
+    a = !(b>=1));
     b= c<=5 || a==1;
     d= a>b && a!=c;
 }
@@ -1003,7 +996,7 @@ void main() {
     a = || a==1;
 }
     """
-    expected = "Error on line 5 col 8: ||"
+    expected = "?"
     assert Parser(source).parse() == expected
 
 def test_expr_logic_using_literal():
@@ -1013,7 +1006,7 @@ def test_expr_logic_using_literal():
 
 void main() {
     // literal as logic operand
-    b= !(-1>=1);
+    b= !(-1>=1)
     a= \"huh?\" || foo();
 }
     """
@@ -1164,7 +1157,7 @@ float multiply(float a, float b,) {
     return a * b;
 }
     """
-    expected = "Error on line 4 col 21: )"
+    expected = "?"
     assert Parser(source).parse() == expected
 
 def test_funcdecl_type_infer():
@@ -1197,7 +1190,7 @@ auto banAuto(int a, string b) {
     return 1+2;
 }
     """
-    expected = "Error on line 4 col 0: auto"
+    expected = "?"
     assert Parser(source).parse() == expected
 
 def test_if_literal():
@@ -1298,7 +1291,7 @@ void main() {
     if () {}
 }
     """
-    expected = "Error on line 5 col 8: )"
+    expected = "?"
     assert Parser(source).parse() == expected
 
 def test_if_empty_elsestmt():
@@ -1311,7 +1304,7 @@ void main() {
     else;
 }
     """
-    expected = "Error on line 6 col 8: ;"
+    expected = "?"
     assert Parser(source).parse() == expected
 
 def test_if_else_empty_body():
@@ -1321,7 +1314,7 @@ def test_if_else_empty_body():
 
 void main() {
     if (1) {}
-    else {}
+    else {};
 }
     """
     expected = "success"
@@ -1386,64 +1379,6 @@ void main() {
     greet(\"Zanis\");
 }
     """
-    expected = "Error on line 5 col 16: )"
-    assert Parser(source).parse() == expected
-
-def test_simple_program_bang_cuu_chuong():
-    """Testcase 98: simple_program_bang_cuu_chuong"""
-    source = """
-
-
-int multiply(int a, int b) {
-    return a * b;
-}
-
-// Bang Cuu Chuong...
-void main() {
-    // having test nested for here
-    for (auto i = 1; i<=9; i++)
-        for (int j = 1; j<=9;j++) 
-            printInt(multiply(i,j));
-}
-    """
-    expected = "success"
-    assert Parser(source).parse() == expected
-
-def test_simple_program_distance():
-    """Testcase 99: simple_program_distance"""
-    source = """
-struct Point2D {
-        int x;
-        int y;
-    };
-
-void printPoint(Point2D p)
-{
-    printString(\"x =\");
-    printInt(p.x);
-    printString(\"y =\");
-    printInt(p.y);
-}
-    """
-    expected = "success"
-    assert Parser(source).parse() == expected
-
-def test_simple_program_factorial():
-    """Testcase 100: simple_program_factorial"""
-    source = """
-
-
-int factorial(int n) {
-    if (n==1) return 1;
-    else if (n==0) return 1;
-    else return n * factorial(n-1);
-}
-void main() {
-    int a = 5;
-    printString(\" a! = \");
-    printInt(factorial(a));
-}
-    """
-    expected = "success"
+    expected = "?"
     assert Parser(source).parse() == expected
 

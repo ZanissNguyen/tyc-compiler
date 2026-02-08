@@ -830,3 +830,11 @@ def test_simple_program_10():
     expected = "struct,Point2D,{,int,x,;,int,y,;,},;,void,printPoint,(,Point2D,p,),{,printString,(,Illegal Escape In String: x \\y"
     tokenizer = Tokenizer(source)
     assert tokenizer.get_tokens_as_string() == expected
+
+# forum testcase
+# def test_just_escape():
+#     """ Testcase: 101 """
+#     source = "\"hello \\\n"
+#     expected = "Unclosed String: hello \\\n"
+#     tokenizer = Tokenizer(source)
+#     assert tokenizer.get_tokens_as_string() == expected
