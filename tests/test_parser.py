@@ -7,7 +7,7 @@ from tests.utils import Parser
 
 
 # ========== Simple Test Cases (10 types) ==========# removed
-
+#My testcase having some problem there
 # testcases submission:
 def test_empty_program():
     """Testcase 1: empty_program"""
@@ -1447,3 +1447,41 @@ void main() {
     expected = "success"
     assert Parser(source).parse() == expected
 
+def test_parser_03():
+    """Testcase 101: uia"""
+    source = """
+    main() {
+    }
+    """
+    expected = "a"
+    assert Parser(source).parse() == expected
+
+def test_parser_22():
+    """Testcase 102: uia"""
+    source = """   
+    main() {
+        auto p3d = {foo(), 3+5, -9};
+    }
+    """
+    expected = "a"
+    assert Parser(source).parse() == expected
+
+def test_parser_62():
+    """Testcase 101: uia"""
+    source = """
+    main() {
+        foo().far.boo++;
+        }"""
+    expected = "a"
+    assert Parser(source).parse() == expected
+
+def test_parser_38():
+    """Testcase 102: uia"""
+    source = """   
+    main() {
+        a++;
+        --a = 9;
+    }
+    """
+    expected = "a"
+    assert Parser(source).parse() == expected

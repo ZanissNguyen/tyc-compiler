@@ -111,6 +111,7 @@ ERROR_CHAR: . {
                     PARSER
    ======================================== */
 
+// comment: MULTI_LINE_COMMENT | SINGLE_LINE_COMMENT;
 type: TYPE_FLOAT
     | TYPE_INT
     | TYPE_STRING;
@@ -124,10 +125,11 @@ member: (type | ID) ID SEMI;
 vardecl: type ID (ASSIGNMENT or_expr)?
     |    TYPE_AUTO ID (ASSIGNMENT or_expr)?
     |    ID ID // struct
-    |    ID ID ASSIGNMENT LBR memberdcl_prime RBR;
+    |    ID ID ASSIGNMENT struct_lit;
+struct_lit: LBR memberdcl_prime RBR;
 memberdcl_prime: memberdcl_list | ;
 memberdcl_list: memberdcl COMMA memberdcl_list | memberdcl;
-memberdcl: or_expr | LBR memberdcl_prime RBR;
+memberdcl: or_expr | struct_lit;
 
 // parameter: null-able separated by comma
 funcdecl: (type | TYPE_VOID | ID)? ID LP parameter_prime RP body;
@@ -139,7 +141,8 @@ body: LBR statement_prime RBR;
 statement_prime: statement_list | ;
 statement_list: statement statement_list | ;
 statement: vardecl SEMI
-        | assignStmt
+        | assignment_expr SEMI
+        | assignStmt SEMI
         | body
         | ifStmt
         | whileStmt
@@ -148,23 +151,22 @@ statement: vardecl SEMI
         | breakStmt
         | continueStmt
         | returnStmt;
-assignStmt: assignment_expr SEMI;
 ifStmt: IF LP assignment_expr RP statement ELSE statement
         | IF LP assignment_expr RP statement;
 whileStmt: WHILE LP assignment_expr RP statement;
-forStmt: FOR LP (vardecl|assignment_expr)? SEMI assignment_expr? SEMI assignment_expr? RP statement;
+forStmt: FOR LP (vardecl|assignStmt)? SEMI assignment_expr? SEMI (assignStmt | prefix_expr)? RP statement;
 breakStmt: BREAK SEMI;
 continueStmt: CONTINUE SEMI;
 returnStmt: RETURN assignment_expr? SEMI
         | RETURN SEMI;
 switchStmt: SWITCH LP assignment_expr RP switchBody;
-switchBody: LBR case_list RBR;
-case_list: case case_list | ; // switch a {}
-case: (normal_case | default_case) ; //
-normal_case: CASE assignment_expr COLON statement_list;
-default_case: DEFAULT COLON statement_list;
+switchBody: LBR case_list (default_case)? case_list RBR; // error: can having more than 1 default clause
+case_list: normal_case case_list | ; // switch a {}
+normal_case: CASE assignment_expr COLON statement_prime;
+default_case: DEFAULT COLON statement_prime;
 
-assignment_expr: postfix_expr ASSIGNMENT assignment_expr | or_expr; // postfix_expr ở đây là assignable
+assignStmt: or_expr ASSIGNMENT assignment_expr;
+assignment_expr: or_expr ASSIGNMENT assignment_expr | or_expr; // postfix_expr ở đây là assignable
 or_expr: or_expr LOG_OR and_expr | and_expr;
 and_expr: and_expr LOG_AND equality_expr | equality_expr;
 equality_expr: equality_expr (IS_EQUAL | NOT_EQUAL) compare_expr | compare_expr;
@@ -179,6 +181,7 @@ primary_expr: LIT_INT
         | LIT_FLOAT
         | LIT_STRING
         | ID
+        | struct_lit
         | LP assignment_expr RP;
 argument_prime: argument_list | ;
 argument_list: argument COMMA argument_list | argument;
