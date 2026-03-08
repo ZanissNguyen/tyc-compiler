@@ -119,11 +119,14 @@ type: TYPE_FLOAT
 // struct
 structdcl: TYPE_STRUCT ID LBR member_list RBR SEMI;
 member_list: member member_list | ;  
-member: (type | ID) ID SEMI;
+member: member_type ID SEMI;
+member_type: type | ID;
 // auto
 
-vardecl: type ID (ASSIGNMENT or_expr)?
-    |    TYPE_AUTO ID (ASSIGNMENT or_expr)?
+vardecl: type ID (ASSIGNMENT or_expr)
+    |    type ID   
+    |    TYPE_AUTO ID (ASSIGNMENT or_expr)
+    |    TYPE_AUTO ID
     |    ID ID // struct
     |    ID ID ASSIGNMENT struct_lit;
 struct_lit: LBR memberdcl_prime RBR;
@@ -141,8 +144,8 @@ body: LBR statement_prime RBR;
 statement_prime: statement_list | ;
 statement_list: statement statement_list | ;
 statement: vardecl SEMI
-        | assignment_expr SEMI
         | assignStmt SEMI
+        | or_expr SEMI
         | body
         | ifStmt
         | whileStmt
@@ -151,38 +154,50 @@ statement: vardecl SEMI
         | breakStmt
         | continueStmt
         | returnStmt;
-ifStmt: IF LP assignment_expr RP statement ELSE statement
-        | IF LP assignment_expr RP statement;
-whileStmt: WHILE LP assignment_expr RP statement;
-forStmt: FOR LP (vardecl|assignStmt)? SEMI assignment_expr? SEMI (assignStmt | prefix_expr)? RP statement;
+ifStmt: IF LP expression RP statement ELSE statement
+        | IF LP expression RP statement;
+whileStmt: WHILE LP expression RP statement;
+forStmt: FOR LP forInit SEMI forCondition SEMI forUpdate RP statement;
+forInit: vardecl | assignStmt | ;
+forCondition: expression | ;
+forUpdate: assignStmt | prefix_expr |;
 breakStmt: BREAK SEMI;
 continueStmt: CONTINUE SEMI;
-returnStmt: RETURN assignment_expr? SEMI
+returnStmt: RETURN expression SEMI
         | RETURN SEMI;
-switchStmt: SWITCH LP assignment_expr RP switchBody;
-switchBody: LBR case_list (default_case)? case_list RBR; // error: can having more than 1 default clause
+switchStmt: SWITCH LP expression RP switchBody;
+switchBody: LBR case_list default_case RBR; // error: can having more than 1 default clause
 case_list: normal_case case_list | ; // switch a {}
-normal_case: CASE assignment_expr COLON statement_prime;
-default_case: DEFAULT COLON statement_prime;
+normal_case: CASE expression COLON statement_prime;
+default_case: DEFAULT COLON statement_prime | ;
 
-assignStmt: or_expr ASSIGNMENT assignment_expr;
-assignment_expr: or_expr ASSIGNMENT assignment_expr | or_expr; // postfix_expr ở đây là assignable
+expression: assignStmt | or_expr;
+assignable: ID | member_expr; // assignable
+assignStmt: assignable ASSIGNMENT assignStmt | assignable ASSIGNMENT or_expr;
 or_expr: or_expr LOG_OR and_expr | and_expr;
 and_expr: and_expr LOG_AND equality_expr | equality_expr;
-equality_expr: equality_expr (IS_EQUAL | NOT_EQUAL) compare_expr | compare_expr;
-compare_expr: compare_expr (LESS_THAN | GREATER | LESS_OR_EQUAL | GREATER_OR_EQUAL) add_expr | add_expr;
-add_expr: add_expr (OP_ADD | OP_SUB) mul_expr | mul_expr;
-mul_expr: mul_expr (OP_MUL | OP_DIV | OP_MOD) unary_expr | unary_expr;
-unary_expr: (LOG_NOT | OP_SUB | OP_ADD) unary_expr | prefix_expr;
-prefix_expr: (INCREMENT | DECREMENT) postfix_expr | postfix_expr;
-postfix_expr: primary_expr postfix_op*;
-postfix_op: INCREMENT | DECREMENT | MEMBER_ACCESS ID | LP argument_prime RP;
+equality_expr: equality_expr equality compare_expr | compare_expr;
+equality: IS_EQUAL | NOT_EQUAL;
+compare_expr: compare_expr compare add_expr | add_expr;
+compare: LESS_THAN | GREATER | LESS_OR_EQUAL | GREATER_OR_EQUAL;
+add_expr: add_expr add mul_expr | mul_expr;
+add: OP_ADD | OP_SUB;
+mul_expr: mul_expr mul unary_expr | unary_expr;
+mul: OP_MUL | OP_DIV | OP_MOD;
+unary_expr: unary unary_expr | prefix_expr;
+unary: LOG_NOT | OP_SUB | OP_ADD;
+prefix_expr: ppfix postfix_expr | postfix_expr;
+postfix_expr: member_expr postfix_op* | member_expr;
+postfix_op: ppfix | LP argument_prime RP;
+ppfix: INCREMENT | DECREMENT;
+member_expr: primary_expr member_access_tail;
+member_access_tail: MEMBER_ACCESS ID member_access_tail | ;
 primary_expr: LIT_INT
         | LIT_FLOAT
         | LIT_STRING
         | ID
         | struct_lit
-        | LP assignment_expr RP;
+        | LP expression RP;
 argument_prime: argument_list | ;
 argument_list: argument COMMA argument_list | argument;
 argument: or_expr;

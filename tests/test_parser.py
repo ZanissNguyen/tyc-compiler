@@ -1477,11 +1477,9 @@ def test_parser_62():
 
 def test_parser_38():
     """Testcase 102: uia"""
-    source = """   
-    main() {
-        a++;
-        --a = 9;
-    }
-    """
+    source = """main() {
+                    a++;
+                    a = b = c;
+                }"""
     expected = "a"
     assert Parser(source).parse() == expected
