@@ -495,7 +495,7 @@ class AssignExpr(Expr):
 class MemberAccess(Expr):
     """Member access expression (struct member access).
     This is written directly in AST, not using PostfixExpression.
-    Can be nested: MemberAccess(MemberAccess(obj, "member1"), "member2")
+    Can be nested: MemberAccess(MemberAccess(MemberAccess(obj, "member1"), "member2"), "member3")
     """
 
     def __init__(self, obj: Expr, member: str):

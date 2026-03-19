@@ -481,7 +481,7 @@ class TyCBuilder:
                 f"--html={ast_report_dir}/index.html",
                 "--timeout=5",
                 "--self-contained-html",
-                "-v",
+                "-vv",
             ],
             check=False,
         )

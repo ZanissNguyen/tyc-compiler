@@ -24,7 +24,8 @@ options{
 	language=Python3;
 }
 
-program: (structdcl | funcdecl)* EOF;
+program: decl* EOF;
+decl: structdcl | funcdecl;
 
 /* ========================================
                     LEXER
@@ -135,7 +136,8 @@ memberdcl_list: memberdcl COMMA memberdcl_list | memberdcl;
 memberdcl: or_expr | struct_lit;
 
 // parameter: null-able separated by comma
-funcdecl: (type | TYPE_VOID | ID)? ID LP parameter_prime RP body;
+funcdecl: functyp ID LP parameter_prime RP body;
+functyp: type | TYPE_VOID | ID | ;
 parameter_prime: parameter_list | ;
 parameter_list: parameter COMMA parameter_list | parameter; 
 parameter: (type | ID) ID;
@@ -154,8 +156,7 @@ statement: vardecl SEMI
         | breakStmt
         | continueStmt
         | returnStmt;
-ifStmt: IF LP expression RP statement ELSE statement
-        | IF LP expression RP statement;
+ifStmt: IF LP expression RP statement (ELSE statement)?;
 whileStmt: WHILE LP expression RP statement;
 forStmt: FOR LP forInit SEMI forCondition SEMI forUpdate RP statement;
 forInit: vardecl | assignStmt | ;
@@ -186,18 +187,19 @@ mul_expr: mul_expr mul unary_expr | unary_expr;
 mul: OP_MUL | OP_DIV | OP_MOD;
 unary_expr: unary unary_expr | prefix_expr;
 unary: LOG_NOT | OP_SUB | OP_ADD;
-prefix_expr: ppfix postfix_expr | postfix_expr;
-postfix_expr: member_expr postfix_op* | member_expr;
-postfix_op: ppfix | LP argument_prime RP;
-ppfix: INCREMENT | DECREMENT;
+prefix_expr: fix_op prefix_expr | postfix_expr;
+postfix_expr: postfix_expr fix_op | member_expr ; //
+fix_op: INCREMENT | DECREMENT;
 member_expr: primary_expr member_access_tail;
 member_access_tail: MEMBER_ACCESS ID member_access_tail | ;
-primary_expr: LIT_INT
+primary_expr: LIT_INT // 
         | LIT_FLOAT
         | LIT_STRING
         | ID
+        | funcall
         | struct_lit
         | LP expression RP;
+funcall: ID LP argument_prime RP; //
 argument_prime: argument_list | ;
 argument_list: argument COMMA argument_list | argument;
 argument: or_expr;
